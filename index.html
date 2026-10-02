@@ -237,7 +237,7 @@ tr:hover td{background:#f8fafc;}
   </div>
   <div class="g3">
     <div class="card"><div class="card-title">Performance Distribution</div><div class="ch-sm"><canvas id="c-perf-d"></canvas></div></div>
-    <div class="card"><div class="card-title">9-Box Overview (click cell to drill in)</div><div style="display:flex;gap:0;margin-top:4px"><div style="display:flex;flex-direction:column;justify-content:space-around;width:24px;font-size:8px;font-weight:700;color:var(--muted);text-align:right;padding-right:3px"><div>High</div><div>Mod</div><div>Low</div></div><div style="display:flex;flex-direction:column;align-items:center;width:14px;margin-right:2px"><div style="flex:1;width:2px;background:var(--border);border-radius:1px"></div><div style="font-size:7px;font-weight:800;color:var(--primary);writing-mode:vertical-rl;transform:rotate(180deg);padding:2px 0;letter-spacing:1px">POTENTIAL</div><div style="flex:1;width:2px;background:var(--border);border-radius:1px"></div></div><div style="flex:1;display:flex;flex-direction:column"><div id="dash-ninebox" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;height:160px"></div><div style="height:1px;background:var(--border);border-radius:1px;margin:3px 0 2px"></div><div style="display:flex;font-size:7px;font-weight:700;color:var(--muted)"><div style="flex:1;text-align:center">Low</div><div style="flex:1;text-align:center">Mod</div><div style="flex:1;text-align:center">High</div></div><div style="text-align:center;font-size:7px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-top:1px">PERFORMANCE</div></div></div></div>
+    <div class="card"><div class="card-title" style="display:flex;align-items:center;gap:6px">9-Box Overview (click cell to drill in)<span id="dash-ninebox-rated-count" style="font-size:10px;font-weight:400;color:var(--muted)"></span></div><div style="display:flex;gap:0;margin-top:4px"><div style="display:flex;flex-direction:column;justify-content:space-around;width:24px;font-size:8px;font-weight:700;color:var(--muted);text-align:right;padding-right:3px"><div>High</div><div>Mod</div><div>Low</div></div><div style="display:flex;flex-direction:column;align-items:center;width:14px;margin-right:2px"><div style="flex:1;width:2px;background:var(--border);border-radius:1px"></div><div style="font-size:7px;font-weight:800;color:var(--primary);writing-mode:vertical-rl;transform:rotate(180deg);padding:2px 0;letter-spacing:1px">POTENTIAL</div><div style="flex:1;width:2px;background:var(--border);border-radius:1px"></div></div><div style="flex:1;display:flex;flex-direction:column"><div id="dash-ninebox" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;height:160px"></div><div style="height:1px;background:var(--border);border-radius:1px;margin:3px 0 2px"></div><div style="display:flex;font-size:7px;font-weight:700;color:var(--muted)"><div style="flex:1;text-align:center">Low</div><div style="flex:1;text-align:center">Mod</div><div style="flex:1;text-align:center">High</div></div><div style="text-align:center;font-size:7px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-top:1px">PERFORMANCE</div><p id="dash-nb-unrated-note" style="margin:4px 0 0;font-size:9px;color:var(--muted);text-align:center"></p></div></div></div>
     <div class="card"><div class="card-title">Gender Breakdown</div><div class="ch-sm"><canvas id="c-gender-d"></canvas></div></div>
   </div>
   <div class="g2" style="margin-top:14px">
@@ -646,6 +646,7 @@ tr:hover td{background:#f8fafc;}
           <div style="flex:1;text-align:center;font-size:9px;font-weight:700;color:var(--muted)">High</div>
         </div>
         <div style="text-align:center;font-size:9px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:4px">PERFORMANCE</div>
+        <p id="nb-unrated-note" style="margin:6px 0 0;font-size:11px;color:var(--muted);text-align:center"></p>
       </div>
     </div>
   </div>
@@ -656,6 +657,16 @@ tr:hover td{background:#f8fafc;}
     </div>
     <div class="card">
       <div class="card-title card-title-row">Top Talent &amp; Key Role by Level<span id="toggle-c-tallv"></span></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <div style="flex:1;background:rgba(0,113,120,0.08);border:1px solid rgba(0,113,120,0.2);border-radius:8px;padding:8px 12px;text-align:center">
+          <div id="tallv-tt-count" style="font-size:22px;font-weight:800;color:#007178">—</div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);margin-top:1px">⭐ Top Talent</div>
+        </div>
+        <div style="flex:1;background:rgba(165,209,201,0.15);border:1px solid rgba(165,209,201,0.4);border-radius:8px;padding:8px 12px;text-align:center">
+          <div id="tallv-kr-count" style="font-size:22px;font-weight:800;color:#00A997">—</div>
+          <div style="font-size:10px;font-weight:600;color:var(--muted);margin-top:1px">🔑 Key Roles</div>
+        </div>
+      </div>
       <div class="ch"><canvas id="c-tallv"></canvas></div>
     </div>
   </div>
@@ -1797,11 +1808,11 @@ function exportTable(data, hdrs, mapper, filename) {
 
 // ═══════════════════════ CHART REGISTRY ═══════════════════════
 const CR = {};
-function mkChart(id,type,data,opts={}) {
+function mkChart(id,type,data,opts={},inlinePlugins=[]) {
   if(CR[id]) CR[id].destroy();
   const el = document.getElementById(id);
   if(!el) return;
-  CR[id] = new Chart(el,{type,data,options:{responsive:true,maintainAspectRatio:false,...opts}});
+  CR[id] = new Chart(el,{type,data,options:{responsive:true,maintainAspectRatio:false,...opts},plugins:inlinePlugins});
 }
 
 // ═══════════════════════ NAV ═══════════════════════
@@ -1947,8 +1958,71 @@ function renderDash() {
   // Mini 9-box grid
   document.getElementById('dash-ninebox').innerHTML = NB_CELLS.map(cell => {
     const cellEmps = emps.filter(e => e.performance===PERF_MAP[cell.p] && e.potential===POT_MAP[cell.pt]);
-    return `<div style="background:${cell.bg};border:1.5px solid ${cell.border};border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s" onclick="showDrillDown('9-Box: ${cell.label}',getFiltered('dash-').filter(e=>e.performance==='${PERF_MAP[cell.p]}'&&e.potential==='${POT_MAP[cell.pt]}'))" title="${cell.label}"><div style="font-size:18px;font-weight:800;color:${cell.tc}">${cellEmps.length}</div><div style="font-size:8px;font-weight:700;color:${cell.tc};text-align:center;line-height:1.2;padding:0 4px">${cell.label}</div></div>`;
+    const isTopCell = (cell.p===3&&cell.pt===3)||(cell.p===2&&cell.pt===3)||(cell.p===3&&cell.pt===2);
+    const starBadge = isTopCell ? '<div style="font-size:11px;line-height:1;margin-bottom:1px">⭐</div>' : '';
+    return `<div style="background:${cell.bg};border:1.5px solid ${cell.border};border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;position:relative" onclick="showDrillDown('9-Box: ${cell.label}',getFiltered('dash-').filter(e=>e.performance==='${PERF_MAP[cell.p]}'&&e.potential==='${POT_MAP[cell.pt]}'))" title="${cell.label}">${starBadge}<div style="font-size:18px;font-weight:800;color:${cell.tc}">${cellEmps.length}</div><div style="font-size:8px;font-weight:700;color:${cell.tc};text-align:center;line-height:1.2;padding:0 4px">${cell.label}</div></div>`;
   }).join('');
+
+  // SVG L-shape overlay for top-talent cells on mini 9-box
+  setTimeout(()=>{
+    const nbGrid = document.getElementById('dash-ninebox');
+    const existingSvg = document.getElementById('dash-nb-svg-overlay');
+    if(existingSvg) existingSvg.remove();
+    if(!nbGrid) return;
+    const cells = Array.from(nbGrid.children);
+    if(cells.length < 9) return;
+    // Row order: row 0 = pt=High, row 1 = pt=Mod, row 2 = pt=Low
+    // Col order: col 0 = pf=Low, col 1 = pf=Mod, col 2 = pf=High
+    // Top talent: Future Star=index 1, Future Leader=index 2, High Impact=index 5
+    const cellFS = cells[1];
+    const cellFL = cells[2];
+    const cellHI = cells[5];
+    const gridRect = nbGrid.getBoundingClientRect();
+    function relRect(cell) {
+      const cr = cell.getBoundingClientRect();
+      return { left:cr.left-gridRect.left, top:cr.top-gridRect.top, right:cr.right-gridRect.left, bottom:cr.bottom-gridRect.top };
+    }
+    const rFS = relRect(cellFS);
+    const rFL = relRect(cellFL);
+    const rHI = relRect(cellHI);
+    const pad = 2;
+    const pts = [
+      `${rFS.left+pad},${rFS.top+pad}`,
+      `${rFL.right-pad},${rFL.top+pad}`,
+      `${rFL.right-pad},${rHI.bottom-pad}`,
+      `${rHI.left+pad},${rHI.bottom-pad}`,
+      `${rHI.left+pad},${rFS.bottom-pad}`,
+      `${rFS.left+pad},${rFS.bottom-pad}`,
+    ].join(' ');
+    const ns='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('id','dash-nb-svg-overlay');
+    svg.style.cssText='position:absolute;top:0;left:0;pointer-events:none;z-index:10;overflow:visible';
+    svg.setAttribute('width', gridRect.width);
+    svg.setAttribute('height', gridRect.height);
+    svg.innerHTML=`<polygon points="${pts}" fill="rgba(251,191,36,0.08)" stroke="#f59e0b" stroke-width="2.5" stroke-linejoin="round"/>`;
+    nbGrid.style.position='relative';
+    nbGrid.style.overflow='visible';
+    nbGrid.appendChild(svg);
+  }, 80);
+
+  // Rated count badge + Dir & above unrated note (dashboard)
+  (function(){
+    const dashEmps = emps.filter(e=>e.empType==='Employee');
+    const rated = dashEmps.filter(e=>e.performance&&e.performance!=='—'&&e.potential&&e.potential!=='—');
+    const cntEl = document.getElementById('dash-ninebox-rated-count');
+    if(cntEl) cntEl.textContent = rated.length+' rated';
+    const dirAbove = dashEmps.filter(e=>e.level<=3&&!(e.title||'').toLowerCase().includes('associate director'));
+    const unrated = dirAbove.filter(e=>!e.performance||e.performance==='—'||!e.potential||e.potential==='—');
+    const noteEl = document.getElementById('dash-nb-unrated-note');
+    if(noteEl){
+      if(unrated.length>0){
+        noteEl.innerHTML='<span style="color:#b45309">&#9888; '+unrated.length+' of '+dirAbove.length+' Dir &amp; above not rated</span>';
+      } else {
+        noteEl.innerHTML='<span style="color:var(--primary)">&#10003; All Dir &amp; above rated</span>';
+      }
+    }
+  })();
 
   const gnds=[...new Set(emps.map(e=>e.gender))];
   mkChart('c-gender-d','doughnut',{labels:gnds,datasets:[{data:gnds.map(g=>emps.filter(e=>e.gender===g).length),backgroundColor:GND_C}]},{plugins:{legend:{position:'bottom'}}});
@@ -3444,6 +3518,21 @@ function renderTalent() {
     </div>`;
   }).join('');
 
+  // Unrated Dir & above note (excludes Associate Directors)
+  (function(){
+    const talFiltered = getFiltered('tal-');
+    const dirAbove = talFiltered.filter(e=>e.empType==='Employee'&&e.level<=3&&!(e.title||'').toLowerCase().includes('associate director'));
+    const unrated = dirAbove.filter(e=>!e.performance||e.performance==='—'||!e.potential||e.potential==='—');
+    const noteEl = document.getElementById('nb-unrated-note');
+    if(noteEl){
+      if(unrated.length>0){
+        noteEl.innerHTML='<span style="color:#b45309">&#9888; '+unrated.length+' of '+dirAbove.length+' Directors &amp; above have not been rated</span>';
+      } else {
+        noteEl.innerHTML='<span style="color:var(--primary)">&#10003; All Directors &amp; above have been rated</span>';
+      }
+    }
+  })();
+
   // SVG overlay for top-talent L-shape outline
   setTimeout(()=>{
     const nbGrid = document.getElementById('ninebox-grid');
@@ -3572,6 +3661,10 @@ function renderTalent() {
     const _keys=getLvKeys(_grp,emps);
     const _lbls=_keys.map(k=>getLvLabel(_grp,k));
     const isTT=e=>((e.performance==='High'&&e.potential==='High')||(e.performance==='Moderate'&&e.potential==='High')||(e.performance==='High'&&e.potential==='Moderate'));
+    const _tallvPlugin = {
+      id:'tallvDataLabels',
+      afterDatasetsDraw() {}
+    };
     mkChart('c-tallv','bar',{labels:_lbls,datasets:[
       {label:'TT & KR',data:_keys.map(k=>emps.filter(e=>lvFilter(_grp,k,e)&&isTT(e)&&e.isKeyRole).length),backgroundColor:'#374151',stack:'s'},
       {label:'Top Talent',data:_keys.map(k=>emps.filter(e=>lvFilter(_grp,k,e)&&isTT(e)&&!e.isKeyRole).length),backgroundColor:'#007178',stack:'s'},
@@ -3589,8 +3682,16 @@ function renderTalent() {
         else{matched=talEmps.filter(e=>lvFilter(_grp,k,e)&&!e.isTopTalent&&e.isKeyRole);label=getLvLabel(_grp,k)+' — Key Role';}
         showDrillDown(label,matched);
       }
-    });
+    },[_tallvPlugin]);
     wireToggleLevel('c-tallv');
+    // Populate summary badges (all employees, ignoring level filter)
+    const _allTalEmps = getFiltered('tal-');
+    const _ttTotal = _allTalEmps.filter(e=>isTT(e)).length;
+    const _krTotal = _allTalEmps.filter(e=>e.isKeyRole).length;
+    const _ttEl = document.getElementById('tallv-tt-count');
+    const _krEl = document.getElementById('tallv-kr-count');
+    if(_ttEl) _ttEl.textContent = _ttTotal;
+    if(_krEl) _krEl.textContent = _krTotal;
   }
 
   document.getElementById('ai-talent').textContent =
