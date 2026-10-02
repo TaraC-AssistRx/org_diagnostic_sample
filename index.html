@@ -646,7 +646,11 @@ tr:hover td{background:#f8fafc;}
           <div style="flex:1;text-align:center;font-size:9px;font-weight:700;color:var(--muted)">High</div>
         </div>
         <div style="text-align:center;font-size:9px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:4px">PERFORMANCE</div>
-        <p id="nb-unrated-note" style="margin:6px 0 0;font-size:11px;color:var(--muted);text-align:center"></p>
+        <div id="nb-unrated-box" onclick="" style="margin-top:6px;border:2px dashed #d1d5db;border-radius:8px;background:#f9fafb;display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 16px;cursor:pointer;transition:background .15s" title="Click to see unrated Dir &amp; above">
+          <span style="font-size:11px;font-weight:700;color:#6b7280;letter-spacing:.5px">UNRATED (Dir &amp; Above)</span>
+          <span id="nb-unrated-count" style="font-size:22px;font-weight:800;color:#6b7280">—</span>
+          <span style="font-size:10px;color:#9ca3af;font-style:italic">click to view</span>
+        </div>
       </div>
     </div>
   </div>
@@ -3518,18 +3522,19 @@ function renderTalent() {
     </div>`;
   }).join('');
 
-  // Unrated Dir & above note (excludes Associate Directors)
+  // Unrated Dir & above box (excludes Associate Directors)
   (function(){
     const talFiltered = getFiltered('tal-');
     const dirAbove = talFiltered.filter(e=>e.empType==='Employee'&&e.level<=3&&!(e.title||'').toLowerCase().includes('associate director'));
     const unrated = dirAbove.filter(e=>!e.performance||e.performance==='—'||!e.potential||e.potential==='—');
-    const noteEl = document.getElementById('nb-unrated-note');
-    if(noteEl){
-      if(unrated.length>0){
-        noteEl.innerHTML='<span style="color:#b45309">&#9888; '+unrated.length+' of '+dirAbove.length+' Directors &amp; above have not been rated</span>';
-      } else {
-        noteEl.innerHTML='<span style="color:var(--primary)">&#10003; All Directors &amp; above have been rated</span>';
-      }
+    const box = document.getElementById('nb-unrated-box');
+    const cntEl = document.getElementById('nb-unrated-count');
+    if(cntEl) cntEl.textContent = unrated.length;
+    if(box){
+      box.onclick = function(){ showDrillDown('Unrated — Dir & Above', unrated); };
+      box.style.borderColor = unrated.length>0 ? '#f59e0b' : '#d1d5db';
+      box.style.background  = unrated.length>0 ? '#fffbeb' : '#f9fafb';
+      if(cntEl) cntEl.style.color = unrated.length>0 ? '#b45309' : '#6b7280';
     }
   })();
 
@@ -3600,7 +3605,7 @@ function renderTalent() {
 
   // 9-box table — Directors and above (level ≤ 3) only
   const allTbody = document.getElementById('all9-tbody');
-  document.getElementById('all9-tbody').innerHTML = emps.filter(e=>e.level<=3).sort((a,b)=>a.name.localeCompare(b.name)).map(e=>{
+  document.getElementById('all9-tbody').innerHTML = emps.filter(e=>e.level<=3).sort((a,b)=>a.level-b.level||a.name.localeCompare(b.name)).map(e=>{
     const nbName=getNBName(e);
     const nbCell=NB_CELLS.find(c=>PERF_MAP[c.p]===e.performance&&POT_MAP[c.pt]===e.potential);
     const isTop=(e.performance==='High'&&e.potential==='High')||(e.performance==='Moderate'&&e.potential==='High')||(e.performance==='High'&&e.potential==='Moderate');
@@ -6819,7 +6824,7 @@ IJ0APLE1J,"Fern, Brady",Pharmacy Technician,ARx PS Pharmacy,"Wilbar, Nick",SVZTZ
 IJ0GGRZ92,"Daghbas, Seidy",Copay Support Specialist,Patient Solutions,"Wilbar, Nick",VS1CPY0JK,Support,PS: Other,SPO,3.03,61776,"$59,280.00 ",Female,Hispanic/Latino,31.6,10/13/2025,Employee,9/18/2023,Seidy.Daghbas@AssistRx.com,4,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
 IJ31A7C4O,"Gonzalez, Jalexis",Pharmacy Technician,CoAssist Pharmacy,"Wilbar, Nick",3HCKG12PU,Support,COA Pharmacy COS,COA,0.62,47840,"$48,880 ",Female,Hispanic/Latino,23.26,2/16/2026,Employee,2/16/2026,Jalexis.Gonzalez@AssistRX.com,3,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
 IJAZ3VGSI,"Hernandez, Evelin",Quality Assurance Specialist-Patient Solution,Patient Solutions,"Wilbar, Nick",SBQL02UXF,Support,Novo Nordisk: Rare Blood,Remote - NJ,0.54,50960,"$53,144.00 ",Female,Hispanic/Latino,36.27,3/16/2026,Employee,3/16/2026,Evelin.Hernandez@AssistRX.com,3.2,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
-IJDGABXH5,"Hankins, Jon","Associate, Strategic Partnerships",Product,"Mettler, Lynn",M2CJC8RMJ,Prof,Product,Remote - IA,0.87,100000.16,"$63,500.00 ",Male,White,32.9,11/17/2025,Employee,11/17/2025,Jon.Hankins@AssistRX.com,4.8,15 Junior/Associate,,,,,,10,,,,,,,,Full Time,9/29/2026
+IJDGABXH5,"Hankins, Jon","Associate, Strategic Partnerships",Strategy,"Little, Stacey",M2CJC8RMJ,Prof,Strategy,Remote - IA,0.87,100000.16,"$63,500.00 ",Male,White,32.9,11/17/2025,Employee,11/17/2025,Jon.Hankins@AssistRX.com,4.8,15 Junior/Associate,,,,,,10,,,,,,,,Full Time,9/29/2026
 IJDSQ70SY,"Santana, Wilson",Quality Assurance Specialist-Patient Solution,Patient Solutions,"Wilbar, Nick",J0LB0XSOX,Support,Pfizer: Paxlovid,Remote - FL,2.72,54033.41,"$53,144 ",Male,Hispanic/Latino,37.28,1/8/2024,Employee,1/8/2024,Wilson.Santana@AssistRx.com,3,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
 IK3YGP7UA,"Campbell, Shaunte","Program Director, Patient Solutions",Patient Solutions,"Wilbar, Nick",Z43I9UYWQ,Dir,Pfizer: Paxlovid,SPO,2.92,118000.22,"$125,000.25 ",Female,Black/African American,43.45,11/10/2025,Employee,10/30/2023,Shaunte.Campbell@AssistRx.com,4.8,08 Director,,,Unrated,,N,10,,,,,,,,Full Time,9/29/2026
 IKPPS5KVP,"Gladney, Phillip","Supervisor, Patient Solutions",Patient Solutions,"Wilbar, Nick",HT5Z3A9J3,Mgr/Sup,Gilead: Advancing Access,Remote - SC,0.58,67000.18,"$66,350 ",Male,Black/African American,43.12,3/2/2026,Employee,3/2/2026,Phillip.Gladney@AssistRX.com,,12 Supervisor,,,,,,,,,,,,,,Full Time,9/29/2026
@@ -6966,7 +6971,7 @@ KFGNDQCHV,"Khan, Shema",Patient Access Specialist,Patient Solutions,"Wilbar, Nic
 KFK3VDW0K,"Crimmins, Lynda",Strategic Account Manager,Account Management,"Britt, Jackie",M0UDVWK0Y,Prof,Account Management,MGO,1.8,133900,"$129,550 ",Female,White,55.79,12/9/2024,Employee,12/9/2024,Lynda.Crimmins@AssistRx.com,4,14 Standard,,,,,,10,,,,,,,,Full Time,9/29/2026
 KGQ8NF35P,"Arvilla, Darliene",Field Support Specialist,Patient Solutions,"Wilbar, Nick",I4MVQLXCX,Support,Novo Nordisk: Norditropin,MGO,0.69,49920,"$56,160 ",Female,Hispanic/Latino,30.54,1/20/2026,Employee,1/20/2026,Darliene.Arvilla@AssistRx.com,3,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
 KGW6XL6O7,"Coates, Cameron",Patient Access Specialist,Patient Solutions,"Wilbar, Nick",T76ALQPCU,Support,Dompe: Oxcervate,Remote - NV,2.61,50801.09,"$45,760.00 ",Male,Black/African American,34.02,4/13/2026,Employee,2/19/2024,Cameron.Coates@AssistRx.com,3.4,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
-KH1Z8U266,"Mcfarlane, Neville",Customer Success Analyst,Center of Excellence,"Britt, Jackie",J878DR97V,Support,Center of Excellence,Remote - FL,4.85,107989.7,"$102,873 ",Male,Black/African American,43.44,10/27/2025,Employee,11/22/2021,Neville.Mcfarlane@assistrx.com,3.4,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
+KH1Z8U266,"Mcfarlane, Neville",Customer Success Analyst,Strategy,"Little, Stacey",J878DR97V,Support,Strategy,Remote - FL,4.85,107989.7,"$102,873 ",Male,Black/African American,43.44,10/27/2025,Employee,11/22/2021,Neville.Mcfarlane@assistrx.com,3.4,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
 KJYPYU3AW,"Washington, Breanah",Patient Access Specialist,Patient Solutions,"Wilbar, Nick",F1SSLPJ6W,Support,Novo Nordisk: Obesity,Remote - AZ,1.61,46954.34,"$45,760.00 ",Female,Black/African American,36.28,2/18/2025,Employee,2/18/2025,Breanah.Washington@AssistRx.com,3,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
 KKEGJS7K0,"Harter, Joyce Marie",Patient Access Specialist,Patient Solutions,"Wilbar, Nick",LCMVBAGII,Support,Dompe: Oxcervate,OPK,3.18,49775.65,"$45,760 ",Female,Two or More Races,66.85,7/24/2023,Employee,7/24/2023,Joyce.Harter@AssistRx.com,4,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,Full Time,9/29/2026
 KL4EE4U9W,"Mouayed, Sepideh",Field Registered Nurse,Patient Solutions,"Wilbar, Nick",3EYKW4MU3,Support,No Program Assigned,Remote - IL,0.16,0,,Female,Unknown,56.74,8/3/2026,Contractor,8/3/2026,,,17 Stnd/Anlyst/Spec,,,,,,,,,,,,,,1099 - Independent Contractor,9/29/2026
@@ -7618,7 +7623,7 @@ SSHT2MC6K,"Polk, Latonya",Client Support Liaison,Prod Support & Ops,"Mettler, Ly
 SSIVR4ZQ0,"Dalton, Siobhan",Customer Service Representative,Patient Solutions,"Wilbar, Nick",6MUJCJVFP,Support,Gilead: Advancing Access,OPK,1.34,39875.68,"$44,012.80 ",Female,Black/African American,46.55,5/27/2025,Employee,5/27/2025,Siobhan.Dalton@AssistRX.com,2,18 Jr/Coordinator,,,,,,,,,,,,,,Full Time,9/29/2026
 SSK2ZBTHB,"Flores, Sandy",Bilingual Patient Care Coordinator,ARx PS Pharmacy,"Wilbar, Nick",2DN2377FD,Support,NCP Pharmacy COS,OPK,0.54,49920,"$45,760.00 ",Female,Hispanic/Latino,32.9,3/16/2026,Employee,3/16/2026,Sandy.Flores@AssistRx.com,3.2,18 Jr/Coordinator,,,,,,,,,,,,,,Full Time,9/29/2026
 SSM9DAS7C,"Nickols, Becky","Senior Manager, Compliance",Legal & Compliance,"Hargrave, Garret",PZSZ4UMIE,Mgr/Sup,Legal & Compliance,Remote - MO,8.49,100000.42,,Female,White,67.69,2/17/2025,Employee,4/3/2018,Becky.Nickols@AssistRX.com,4.4,10 Senior Manager,,,,,,,,,,,,,,Full Time,9/29/2026
-SSQ7TTK0G,"Shealy, Alan","Vice President, Engineering",Development,"Mettler, Lynn",51XH1U4MA,VP,Development,Remote - FL,0.04,325000.26,"$303,160.00 ",Male,White,52.93,9/14/2026,Employee,9/14/2026,Alan.Shealy@AssistRx.com,,05 Vice President,,,Unrated,,N,30,150000,,,,,,,Full Time,9/29/2026
+SSQ7TTK0G,"Shealy, Alan","Vice President, Engineering",Development,"Mettler, Lynn",51XH1U4MA,VP,Development,Remote - FL,0.04,325000.26,"$303,160.00 ",Male,White,52.93,9/14/2026,Employee,9/14/2026,Alan.Shealy@AssistRx.com,,05 Vice President,Moderate,High,Future Star,,N,30,150000,,,,,,,Full Time,9/29/2026
 ST145SE4P,"Weber, Matthew",Senior DevOps Engineer,Architecture & DevOps,"Mettler, Lynn",LT06C8PCO,Prof,Architecture & DevOps,Remote - FL,7.27,113602.32,"$120,250.23 ",Male,White,36.79,2/17/2025,Employee,6/24/2019,Matthew.Weber@assistrx.com,4.2,13 Senior/Lead/Prof,,,,,,,,,,,,,,Full Time,9/29/2026
 STEYKD91C,"Martinez, Daniel",Contractor,Development,"Mettler, Lynn",5FM7QBFRX,Support,Development,,2.21,0,,Male,Unknown,56.74,7/12/2024,Contractor,7/12/2024,Daniel.Martinez@AssistRX.com,,18 Jr/Coordinator,,,,,,,,,,,,On Demand Group,49,Temporary Worker [Agency],9/29/2026
 SU1JFBB6U,"Meisinger, Adam",Pharmacist,ARx PS Pharmacy,"Wilbar, Nick",PXT10E8UE,Prof,NCP Pharmacy COS,OPK,0.92,130000,"$130,000.24 ",Male,White,43.51,1/5/2026,Employee,10/27/2025,Adam.Meisinger@AssistRX.com,3.4,14 Standard,,,,,,,,,,,,,,Full Time,9/29/2026
@@ -8252,19 +8257,19 @@ A8PV002HX,"Wilbar, Nick",Chief Operating Officer,Executive Leadership," Cooper, 
 BM0PMPFLT,"Patel, Jimmy","Director, Call Center",ARx PS Pharmacy,"Wilbar, Nick",VZ0QVZ1UH,Dir,PS: Overhead and Admin,OPK,0.73,150000.24,"$116,883.00 ",Male,Asian,48.79,1/5/2026,Employee,1/5/2026,jimmy.patel@assistrx.com,4.6,08 Director,,,Unrated,,N,10,73500,,,,,,,Full Time,9/29/2026
 BTWOH4SCV,"Ramsook, Ryan","Director, Pharmacy Clinical Operations",CoAssist Pharmacy,"Wilbar, Nick",RJ8KZJRAJ,Dir,PS: Overhead and Admin,COA,3.57,166400.26,"$165,000.25 ",Male,Two or More Races,39.26,7/7/2025,Employee,3/6/2023,Shastri.Ramsook@AssistRx.com,4.8,08 Director,,,Unrated,,N,15,58171,,,,,,,Full Time,9/29/2026
 C8AMMSQ6E,"Spalitto, Anthony","Director, Facilities & Special Projects",Facilities & Admin,"Wilbar, Nick",A8PV002HX,Dir,Facilities & Admin,OPK,8.49,235693.64,124014.5,Male,White,63.2,4/3/2018,Employee,4/3/2018,anthony.spalitto@assistrx.com,,08 Director,,,Unrated,,N,,,,,,,,,Full Time,9/29/2026
-CLC0FV2J0,"Gravitte, John","Director, Software Quality Assurance",Quality & Release Mngmt,"Mettler, Lynn",51XH1U4MA,Dir,Quality & Release Mngmt,SPO,1.65,179777.78,160000.24,Male,White,57.97,2/3/2025,Employee,2/3/2025,John.Gravitte@AssistRx.com,4,08 Director,,,Unrated,,N,15,,,,,,,,Full Time,9/29/2026
-EZ98LF3XF,"Campbell, Melissa","Vice President, Agile Delivery",Development,"Mettler, Lynn",51XH1U4MA,VP,Development,Remote - GA,0.12,275000.18,"$257,714.00 ",Female,White,51.38,8/17/2026,Employee,8/17/2026,melissa.campbell@assistrx.com,,05 Vice President,,,Unrated,,Y,30,150000,,,,,,,Full Time,9/29/2026
+CLC0FV2J0,"Gravitte, John","Director, Software Quality Assurance",Quality & Release Mngmt,"Mettler, Lynn",51XH1U4MA,Dir,Quality & Release Mngmt,SPO,1.65,179777.78,160000.24,Male,White,57.97,2/3/2025,Employee,2/3/2025,John.Gravitte@AssistRx.com,4,08 Director,Moderate,Moderate,Key Performer,,N,15,,,,,,,,Full Time,9/29/2026
+EZ98LF3XF,"Campbell, Melissa","Vice President, Agile Delivery",Development,"Mettler, Lynn",51XH1U4MA,VP,Development,Remote - GA,0.12,275000.18,"$257,714.00 ",Female,White,51.38,8/17/2026,Employee,8/17/2026,melissa.campbell@assistrx.com,,05 Vice President,Moderate,High,Future Star,,Y,30,150000,,,,,,,Full Time,9/29/2026
 J9R6GLKBG,"Britt, Jackie",Chief Client Officer,Executive Leadership," Cooper, Lee",9O5ILS80O,Exec,Executive Leadership,Remote - GA,7.61,324450.14,,Female,White,39.11,5/26/2025,Employee,2/18/2019,jacqueline.britt@assistrx.com,,02 C-Level,,,,,,75,2807255,,,,,,,Full Time,9/29/2026
 OUJ5YWKAJ,"Ansari, Aaron",Interim Infrastructure Leader,Infrastructure & Telecom,"Mettler, Lynn",51XH1U4MA,VP,Infrastructure & Telecom,Remote - FL,0.44,0,"$247,550.24 ",Unknown,Unknown,56.74,4/20/2026,Contractor,4/20/2026,Aaron.Ansari@assistrx.com,,05 Vice President,,,Unrated,,N,,150000,,,,,,34,Consultant,9/29/2026
 SNW4ETOQJ,"Jones, Clifford",Chief AI Officer,Allazo Technology,"Mettler, Lynn",51XH1U4MA,Exec,Allazo Technology,Remote - CA,1.54,284625.38,206000,Male,White,42.62,3/14/2025,Employee,3/14/2025,Clifford.Jones@AssistRx.com,,02 C-Level,,,,,,20,716876,,,,,,,Full Time,9/29/2026
 UDDYOQRY2,"Davis, Ann","Senior Director, Pharmacy",ARx PS Pharmacy,"Wilbar, Nick",VZ0QVZ1UH,Dir,PS: Overhead and Admin,OPK,8.49,235068.34,"$190,000 ",Female,White,61.79,3/2/2026,Employee,4/3/2018,Ann.Davis@AssistRX.com,4.6,07 Senior Director,,,Unrated,,N,15,121922,,,,,,,Full Time,9/29/2026
-V5Q33YRYA,"Seguy, Tim","Vice President, Infrastructure Services",Infrastructure & Telecom,"Mettler, Lynn",51XH1U4MA,VP,Infrastructure & Telecom,Remote - GA,0.08,275000.18,"$257,714.00 ",Male,White,56.24,8/31/2026,Employee,8/31/2026,Tim.Seguy@AssistRx.com,,05 Vice President,,,Unrated,,Y,30,150000,,,,,,,Full Time,9/29/2026
+V5Q33YRYA,"Seguy, Tim","Vice President, Infrastructure Services",Infrastructure & Telecom,"Mettler, Lynn",51XH1U4MA,VP,Infrastructure & Telecom,Remote - GA,0.08,275000.18,"$257,714.00 ",Male,White,56.24,8/31/2026,Employee,8/31/2026,Tim.Seguy@AssistRx.com,,05 Vice President,High,Moderate,High Impact Performer,,Y,30,150000,,,,,,,Full Time,9/29/2026
 0E0J68AJJ,"Bright, Blake","Director, Strategic Operations",Commercial Operations,"Wilbar, Nick",29F2SPU49,Dir,Commercial Operations,Remote - FL,0.5,175000.02,,Male,Two or More Races,27.95,3/30/2026,Employee,3/30/2026,blake.bright@assistrx.com,,08 Director,High,High,Future Leader,Y,,20,73500,,,,,,,Full Time,9/29/2026
 29F2SPU49,"DiGiorno, Dan","Senior Vice President, Strategic Operations",Commercial Operations,"Wilbar, Nick",A8PV002HX,VP,Commercial Operations,Remote - FL,1.3,293550.04,"$194,000.00 ",Male,White,32.25,11/24/2025,Employee,6/10/2025,Daniel.DiGiorno@assistrx.com,,04 Senior VP/GVP,High,High,Future Leader,Y,Y,35,716001,,,,,,,Full Time,9/29/2026
 57YYOAOZ0,"Barnes, Shanna","Vice President, Patient Solutions",Patient Solutions,"Wilbar, Nick",QZBHZYGHC,VP,PS: Overhead and Admin,Remote - NC,1.25,239195.06,"$213,720.00 ",Female,Black/African American,55.95,6/1/2026,Employee,6/30/2025,Shanna.Barnes@AssistRX.com,,05 Vice President,High,High,Future Leader,Y,Y,30,250000,,,,,,,Full Time,9/29/2026
 6FJHVTYZX,"Kelley, Emily","Senior Director, Legal Operations",Legal & Compliance,"Hargrave, Garret",EQ2LRBY28,Dir,Legal & Compliance,MGO,16.52,170000.22,,Female,White,40.88,11/24/2025,Employee,3/22/2010,Emily.Kelley@AssistRx.com,,07 Senior Director,High,High,Future Leader,Y,,20,97750,,,,,,,Full Time,9/29/2026
 AQWP2LAAA,"Tarczon, Kevin","Vice President, Strategic Operations",Commercial Operations,"Wilbar, Nick",29F2SPU49,VP,Commercial Operations,Remote - TN,1.11,200000.06,"$213,720.00 ",Male,White,27.47,7/20/2026,Employee,8/18/2025,Kevin.Tarczon@AssistRx.com,,05 Vice President,High,High,Future Leader,Y,N,20,73500,,,,,,,Full Time,9/29/2026
-M2CJC8RMJ,"McMurray, Nick","Senior Director, Strategic Partnerships",Product,"Mettler, Lynn",51XH1U4MA,Dir,Product,DSM,6.86,183750.06,,Male,White,29.92,5/26/2025,Employee,11/18/2019,nick.mcmurray@assistrx.com,4.4,07 Senior Director,High,High,Future Leader,Y,Y,30,161012,,,,,,,Full Time,9/29/2026
+M2CJC8RMJ,"McMurray, Nick","Senior Director, Strategic Partnerships",Strategy,"Little, Stacey",51XH1U4MA,Dir,Strategy,DSM,6.86,183750.06,,Male,White,29.92,5/26/2025,Employee,11/18/2019,nick.mcmurray@assistrx.com,4.4,07 Senior Director,High,High,Future Leader,Y,Y,30,161012,,,,,,,Full Time,9/29/2026
 PH893T4JK,"Keith, Brittiany","Director, Copay",Patient Solutions,"Wilbar, Nick",7WQOD6FTY,Dir,PS: Other,Remote - NC,1.73,130000,140000.24,Female,Black/African American,37.89,12/8/2025,Employee,1/6/2025,Brittiany.Keith@AssistRx.com,3.4,08 Director,High,High,Future Leader,Y,,15,,,,,,,,Full Time,9/29/2026
 RKID1L00P,"Vijayakumar, Vaishnavi","Director, Software Engineering",Development,"Mettler, Lynn",6VSFZAYEL,Dir,Development,Remote - NC,0.39,200000.06,"$160,000.24 ",Female,Asian,37.17,5/11/2026,Employee,5/11/2026,Vaish.Vijayakumar@AssistRx.com,4.8,08 Director,High,High,Future Leader,Y,,10,93500,,,,,,,Full Time,9/29/2026
 SB5MI7DNN,"Wills, Bridget",Chief of Staff,Executive Leadership," Cooper, Lee",9O5ILS80O,Exec,Executive Leadership,MGO,8.72,206000.06,,Female,White,39.37,1/1/2026,Employee,1/8/2018,Bridget.Wills@Assistrx.com,,02 C-Level,High,High,Future Leader,Y,,25,225000,,,,,,,Full Time,9/29/2026
@@ -8313,7 +8318,7 @@ DTSRUJNKD,"Sivakolunthu Vel, Bala","Vice President, Data Engineering",Allazo Tec
 F247NZQ9D,"Wittenmyer, Erica","Director, Methodology & Delivery Enablement",Center of Excellence,"Britt, Jackie",HM4BUZJQH,Dir,Center of Excellence,Remote - FL,0.62,180000.08,,Female,White,48.76,2/16/2026,Employee,2/16/2026,erica.wittenmyer@assistrx.com,5,08 Director,Moderate,Moderate,Key Performer,N,N,10,,,,,,,,Full Time,9/29/2026
 HDDUKOH03,"Stark, Yvonne","Senior Director, Patient Solutions",Patient Solutions,"Wilbar, Nick",QZBHZYGHC,Dir,Novo Nordisk: Obesity,OPK,8.49,149077.03,"$165,000.25 ",Female,White,42.81,5/26/2025,Employee,4/3/2018,Yvonne.Stark@AssistRX.com,,07 Senior Director,Moderate,Moderate,Key Performer,N,N,15,66908,,,,,,,Full Time,9/29/2026
 IN7XKY0Z5,"Neary, Allison","Vice President, Patient Solutions",Patient Solutions,"Wilbar, Nick",QZBHZYGHC,VP,PS: Overhead and Admin,MGO,10.33,200850,"$200,000 ",Female,White,49.4,3/3/2025,Employee,5/31/2016,Allison.Neary@AssistRx.com,,05 Vice President,Moderate,Moderate,Key Performer,N,N,20,140400,,,,,,,Full Time,9/29/2026
-J878DR97V,"Nielsen, Timothy","Vice President, Customer Success",Center of Excellence,"Britt, Jackie",J9R6GLKBG,VP,Center of Excellence,Remote - UT,7.63,232875.24,,Male,White,40.5,6/26/2023,Employee,2/11/2019,tim.nielsen@assistrx.com,,05 Vice President,Moderate,Moderate,Key Performer,N,Y,30,573501,,,,,,,Full Time,9/29/2026
+J878DR97V,"Nielsen, Timothy","Vice President, Customer Success",Strategy,"Little, Stacey",J9R6GLKBG,VP,Strategy,Remote - UT,7.63,232875.24,,Male,White,40.5,6/26/2023,Employee,2/11/2019,tim.nielsen@assistrx.com,,05 Vice President,Moderate,Moderate,Key Performer,N,Y,30,573501,,,,,,,Full Time,9/29/2026
 KY72IK0FP,"Leung, Kevin","Vice President, Analytics",Allazo Technology,"Mettler, Lynn",SNW4ETOQJ,VP,Allazo Technology,Remote - TX,1.54,235586,,Male,Asian,44.94,3/14/2025,Employee,3/14/2025,Kevin.Leung@AssistRX.com,4.6,05 Vice President,Moderate,Moderate,Key Performer,N,N,20,76752,,,,,,,Full Time,9/29/2026
 OE8VYT35W,"Zortman, Mike","Director, Data Solutions",Enterprise Data,"Mettler, Lynn",8UWEPEU3Z,Dir,Enterprise Data,Remote - OH,1.13,192593.96,"$181,800 ",Male,White,46.37,8/11/2025,Employee,8/11/2025,Mike.Zortman@assistrx.com,4,08 Director,Moderate,Moderate,Key Performer,N,N,20,,,,,,,,Full Time,9/29/2026
 Q5ZVGDI4Z,"Roubik, Sean","Vice President, Finance",Finance,"Gruener, Jeff",Z66MI3TQM,VP,Finance,Remote - LA,8.41,203300.24,,Male,White,38.51,2/17/2025,Employee,5/2/2018,sean.roubik@assistrx.com,,05 Vice President,Moderate,Moderate,Key Performer,N,N,25,481901,,,,,,,Full Time,9/29/2026
